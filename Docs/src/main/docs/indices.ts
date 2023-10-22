@@ -24,8 +24,8 @@ declare namespace RHU {
     }) {
         
         ((docs: Docs) => {
-            docs.set("Random HTML Utility", "RHU.js");
-        })(docs.create("1.0.0", "Random HTML Utility"));
+            docs.set("Docuscript", "Docuscript.js");
+        })(docs.create("1.0.0", "Docuscript"));
 
         return {
             DOCUSCRIPT_ROOT
