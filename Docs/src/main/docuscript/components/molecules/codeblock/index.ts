@@ -13,7 +13,9 @@ declare namespace RHU {
 declare namespace RHUDocuscript {
     namespace Molecules {
         interface Codeblock extends HTMLDivElement {
-            code: HTMLDivElement;
+            setLanguage(lang: string): void;
+            
+            code: HTMLElement;
         }
     }
 }
@@ -26,15 +28,19 @@ RHU.module(new Error(), "docuscript/components/molecules/codeblock", {
     const codeblock = Macro((() => {
         const codeblock = function(this: RHUDocuscript.Molecules.Codeblock) {
         } as RHU.Macro.Constructor<RHUDocuscript.Molecules.Codeblock>;
+        codeblock.prototype.setLanguage = function(lang) {
+            this.code.classList.toggle(lang, true);
+            hljs.highlightElement(this.code);
+        };
 
-        codeblock.prototype.appendChild = function(...args) {
-            return HTMLElement.prototype.appendChild.call(this.code, ...args);
+        codeblock.prototype.append = function(...args) {
+            return HTMLElement.prototype.append.call(this.code, ...args);
         }
 
         return codeblock;
     })(), "docuscript/molecules/codeblock", //html
         `
-        <div rhu-id="code"></div>
+        <pre><code rhu-id="code"></code></pre>
         `, {
             element: //html
             `<div></div>`

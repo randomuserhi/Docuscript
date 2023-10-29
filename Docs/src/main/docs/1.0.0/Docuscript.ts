@@ -15,10 +15,9 @@ RHU.require(new Error(), {
             "Writing with code opens up avenues for productivity and customisation through enabling standard code behaviour."
         );
         h(1, "About");
-        code(
-            "test", br(),
-            "broskey", br(),
-            "crazy"
+        code("language-md",
+            "# Example",
+            "woah"
         );
     }, rhuDocuscript);
     docs.get(version)!.setCache(path, page);

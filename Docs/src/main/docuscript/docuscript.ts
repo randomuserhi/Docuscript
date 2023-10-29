@@ -11,7 +11,7 @@
                     text: text,
                 };
             },
-            parse: function(node) {
+            parse: function(_, node) {
                 return document.createTextNode(node.text);
             }
         },
@@ -21,8 +21,10 @@
                     __type__: "br",
                 };
             },
-            parse: function() {
-                return document.createElement("br");
+            parse: function(children) {
+                let dom = document.createElement("br");
+                dom.append(children);
+                return dom;
             }
         },
         p: {
@@ -44,8 +46,10 @@
 
                 return node;
             },
-            parse: function() {
-                return document.createElement("p");
+            parse: function(children) {
+                let dom = document.createElement("p");
+                dom.append(children);
+                return dom;
             }
         },
         h: {
@@ -68,8 +72,10 @@
 
                 return node;
             },
-            parse: function(node) {
-                return document.createElement(`h${node.heading}`);
+            parse: function(children, node) {
+                let dom = document.createElement(`h${node.heading}`);
+                dom.append(children);
+                return dom;
             }
         },
         block: {
@@ -91,8 +97,10 @@
 
                 return node;
             },
-            parse: function() {
-                return document.createElement("div");
+            parse: function(children) {
+                let dom = document.createElement("div");
+                dom.append(children);
+                return dom;
             }
         },
     };
@@ -146,27 +154,28 @@
     }) {
         const fragment = new DocumentFragment();
         const parser = page.parser as Docuscript.Parser<string, FuncMap>;
-
         let content = docuscript.parse(page);
 
         let stack: Node[] = [];
         let walk = (node: Docuscript.Node<T>) => {
-            if (RHU.exists(patch) && RHU.exists(patch.pre)) {
-                patch.pre(node);
-            }
-            let dom = parser[node.__type__].parse(node as any);
-            if (RHU.exists(patch) && RHU.exists(patch.post)) {
-                patch.post(node, dom);
-            }
+            let wrapper = new DocumentFragment();
 
             let parent = stack.length === 0 ? undefined : stack[stack.length - 1];
 
-            stack.push(dom);
+            stack.push(wrapper);
 
             if (node.__children__) {
                 for (let child of node.__children__) {
                     walk(child);
                 }
+            }
+
+            if (patch && patch.pre) {
+                patch.pre(node);
+            }
+            let dom = parser[node.__type__].parse(wrapper, node as any);
+            if (patch && patch.post) {
+                patch.post(node, dom);
             }
 
             if (parent) {
@@ -178,17 +187,6 @@
             stack.pop();
         };
         for (let node of content) {
-            if (!node.__children__ || node.__children__.length === 0) {
-                if (RHU.exists(patch) && RHU.exists(patch.pre)) {
-                    patch.pre(node);
-                }
-                const dom = parser[node.__type__].parse(node as any);
-                fragment.append(dom);
-                if (RHU.exists(patch) && RHU.exists(patch.post)) {
-                    patch.post(node, dom);
-                }
-                continue;
-            }
             walk(node);
         }
 

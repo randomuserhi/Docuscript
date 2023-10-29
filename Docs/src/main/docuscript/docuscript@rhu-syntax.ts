@@ -28,7 +28,12 @@ declare namespace RHUDocuscript {
             link?: string;
             onclick?: () => void;
         };
-        code: {};
+        link: {
+            href: string;
+        };
+        code: {
+            language: string;
+        };
     }
     type Language = keyof NodeMap;
 
@@ -44,8 +49,9 @@ declare namespace RHUDocuscript {
         frag: (...children: (string | Node)[]) => Node<"frag">;
 
         pl: (path: string, index?: number, ...children: (string | Node)[]) => Node<"pl">;
+        link: (href: string, ...children: (string | Node)[]) => Node<"link">;
 
-        code: (...children: (string | Node)[]) => Node<"code">;
+        code: (language: string, ...content: (string)[]) => Node<"code">;
     }
 
     type Page = Docuscript.Page<Language, FuncMap>;
@@ -82,20 +88,42 @@ RHU.module(new Error(), "docuscript", {
     }
 
     return {
-        code: {
-            create: function(this: context, ...children) {
-                let node: node<"code"> = {
-                    __type__: "code"
+        link: {
+            create: function(this: context, href, ...children) {
+                let node: node<"link"> = {
+                    __type__: "link",
+                    href,
                 };
 
                 mountChildrenText(this, node, children);
 
                 return node;
             },
-            parse: function(node) {
-                const dom = document.createMacro(codeblock);
+            parse: function(children, node) {
+                const dom = document.createElement("a");
+                dom.target = "blank";
+                dom.href = node.href;
+                dom.append(children);
                 return dom;
             }
+        },
+        code: {
+            create: function(this: context, language: string, ...children) {
+                let node: node<"code"> = {
+                    __type__: "code",
+                    language,
+                };
+
+                this.remount(this.nodes.text(children.join("\n")), node);
+
+                return node;
+            },
+            parse: function(children, node) {
+                const dom = document.createMacro(codeblock);
+                dom.append(children);
+                dom.setLanguage(node.language);
+                return dom;
+            },
         },
         pl: {
             create: function(this: context, path, index, ...children) {
@@ -109,7 +137,7 @@ RHU.module(new Error(), "docuscript", {
 
                 return node;
             },
-            parse: function(node) {
+            parse: function(children, node) {
                 const pl = node as node<"pl">;
                 const dom = document.createElement(`a`);
                 dom.style.textDecoration = "inherit"; // TODO(randomuserhi): style properly with :hover { text-decoration: underline; }
@@ -122,6 +150,7 @@ RHU.module(new Error(), "docuscript", {
                         }
                     });
                 }
+                dom.append(children);
                 return dom;
             }
         },
@@ -132,7 +161,7 @@ RHU.module(new Error(), "docuscript", {
                     src: src,
                 }
             },
-            parse: function(node) {
+            parse: function(_, node) {
                 let img = document.createElement("img");
                 img.src = node.src;
                 return img;
@@ -145,7 +174,7 @@ RHU.module(new Error(), "docuscript", {
                     text: text,
                 };
             },
-            parse: function(node) {
+            parse: function(_, node) {
                 return document.createTextNode(node.text);
             }
         },
@@ -155,8 +184,10 @@ RHU.module(new Error(), "docuscript", {
                     __type__: "br",
                 };
             },
-            parse: function() {
-                return document.createElement("br");
+            parse: function(children) {
+                let dom = document.createElement("br");
+                dom.append(children);
+                return dom;
             }
         },
         p: {
@@ -165,12 +196,23 @@ RHU.module(new Error(), "docuscript", {
                     __type__: "p",
                 };
 
-                mountChildrenText(this, node, children);
+                for (let child of children) {
+                    let childNode: node;
+                    if (typeof child === "string") {
+                        childNode = this.nodes.text(child);
+                    } else {
+                        childNode = child;
+                    }
+                    
+                    this.remount(childNode, node);
+                }
 
                 return node;
             },
-            parse: function() {
-                return document.createElement("p");
+            parse: function(children) {
+                let dom = document.createElement("p");
+                dom.append(children);
+                return dom;
             }
         },
         h: {
@@ -189,7 +231,7 @@ RHU.module(new Error(), "docuscript", {
 
                 return node;
             },
-            parse: function(node) {
+            parse: function(children, node) {
                 const h = node as node<"h">;
                 const dom = document.createElement(`h${h.heading}`);
                 dom.style.display = "flex";
@@ -211,6 +253,7 @@ RHU.module(new Error(), "docuscript", {
                     });
                     dom.append(link);
                 }
+                dom.append(children);
                 return dom;
             }
         },
@@ -224,8 +267,10 @@ RHU.module(new Error(), "docuscript", {
 
                 return node;
             },
-            parse: function() {
-                return document.createElement("div");
+            parse: function(children) {
+                let dom = document.createElement("div");
+                dom.append(children);
+                return dom;
             }
         },
         frag: {
@@ -234,12 +279,14 @@ RHU.module(new Error(), "docuscript", {
                     __type__: "frag",
                 };
                 
-                mountChildrenP(this, node, children);
+                mountChildrenText(this, node, children);
 
                 return node;
             },
-            parse: function() {
-                return new DocumentFragment();
+            parse: function(children) {
+                let dom = new DocumentFragment();
+                dom.append(children);
+                return dom;
             },
         },
     };
