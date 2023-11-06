@@ -51,6 +51,7 @@ declare namespace RHUDocuscript {
         };
         tr: {};
         td: {};
+        t: {};
     }
     type Language = keyof NodeMap;
 
@@ -78,8 +79,9 @@ declare namespace RHUDocuscript {
         code: (params: [language?: string], ...content: (string)[]) => Node<"code">;
         icode: (params: [language?: string], ...content: (string)[]) => Node<"icode">;
 
-        table: (widths: string[], ...content: (string | Node)[]) => Node<"table">;
-        tr: (...content: (string | Node)[]) => Node<"tr">;
+        t: (widths: string[], ...content: (string | Node)[][]) => Node<"table">;
+        table: (widths: string[], ...content: (string | Node<"tr">)[]) => Node<"table">;
+        tr: (...content: (string | Node<"td">)[]) => Node<"tr">;
         td: (...content: (string | Node)[]) => Node<"td">;
 
         desmos: (src: string) => Node<"desmos">;
@@ -120,6 +122,21 @@ RHU.module(new Error(), "docuscript", {
     }
 
     return {
+        t: {
+            create: function(this: context, widths, ...content) {
+                let node: node<"table"> = {
+                    __type__: "table",
+                    widths
+                };
+
+                const { td, tr } = this.nodes;
+                for (const row of content) {
+                    this.remount(tr(...row.map(r => td(r))), node);
+                }
+
+                return node;
+            },
+        },
         table: {
             create: function(this: context, widths, ...children) {
                 let node: node<"table"> = {

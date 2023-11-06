@@ -6,6 +6,8 @@ declare namespace RHU {
             create(version: string, defaultPage?: string): Docs;
             versions: Map<string, Docs>;
             split(path: string): string[];
+            jit?: (version: string, path: string) => RHUDocuscript.Page;
+            // jit => Just In Time => catches the page onload just in time to cache it
         };
     }
 }

@@ -27,7 +27,7 @@ declare namespace Docuscript {
     type NodeFuncMap<T extends string> = { [K in T]: (...args: any[]) => any; };
     interface NodeDefinition<T extends (...args: any[]) => any = (...args: any[]) => any> {
         create: T;
-        parse: (node: AnyNode) => globalThis.Node;
+        parse?: (node: AnyNode) => globalThis.Node;
     }
     type ToNodeMap<T extends { [k in string]: (...args: any[]) => any }> = {
         [K in keyof T]: NodeDefinition<T[K]>;
@@ -43,7 +43,7 @@ declare namespace Docuscript {
     type Parser<T extends string, FuncMap extends NodeFuncMap<T>> = {
         [P in T]: {
             create: ToNodeMap<FuncMap>[P]["create"];
-            parse: (children: globalThis.Node[], node: ReturnType<ToNodeMap<FuncMap>[P]["create"]>) => globalThis.Node | [globalThis.Node, ReturnType<ToNodeMap<FuncMap>[P]["create"]>["__destructor__"]];
+            parse?: (children: globalThis.Node[], node: ReturnType<ToNodeMap<FuncMap>[P]["create"]>) => globalThis.Node | [globalThis.Node, ReturnType<ToNodeMap<FuncMap>[P]["create"]>["__destructor__"]];
             destructor?: (data: ReturnType<ToNodeMap<FuncMap>[P]["create"]>["__destructor__"]) => void;
         }
     };

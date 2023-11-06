@@ -174,7 +174,8 @@
             if (patch && patch.pre) {
                 patch.pre(node);
             }
-            let result = parser[node.__type__].parse(wrapper, node as any);
+            if (parser[node.__type__].parse === undefined) throw new Error(`No parser exists for node of type: ${node.__type__}.`);
+            let result = parser[node.__type__].parse!(wrapper, node as any);
             let data: any = undefined;
             let dom: globalThis.Node;
             if (Array.isArray(result)) {

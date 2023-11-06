@@ -78,13 +78,28 @@ RHU.module(new Error(), "components/organisms/docpages", {
         }
     };
 
-    const loadPage = (versionStr: string, page: PageLink, callback?: { onload?: () => void; onerror?: () => void; }) => {
+    const loadPage = (versionStr: string, directory: Page, callback?: { onload?: () => void; onerror?: () => void; }) => {
+        if (!directory.page) throw new Error("No page for this directory.");
+        const page = directory.page;
+        
         if (page.cache) return;
 
         if (!page.script) {
             const script = document.createElement("script");
             script.onload = () => {
                 page.script = undefined;
+
+                if (RHU.exists(docs.jit)) {
+                    page.cache = docs.jit(versionStr, directory.fullPath());
+                } else {
+                    console.error(`Page not found: ${script.src}`);
+                    if (callback && callback.onerror) {
+                        callback.onerror();
+                    }
+                    page.script = undefined;
+                    script.replaceWith();
+                    return;
+                }
 
                 if (callback && callback.onload) {
                     callback.onload();
@@ -121,7 +136,7 @@ RHU.module(new Error(), "components/organisms/docpages", {
             version.walk((dir) => {
                 let page = dir as Page;
                 if (page.page) {
-                    loadPage(versionStr, page.page); // TODO(randomuserhi): On fail to load, log error or something
+                    loadPage(versionStr, page); // TODO(randomuserhi): On fail to load, log error or something
                 }
             });
         }
@@ -419,7 +434,7 @@ RHU.module(new Error(), "components/organisms/docpages", {
                             this.render(directory.page.cache, index, directory, !rerender);
                         } else {
                             this.render(rhuDocuscriptPages.loadingPage);
-                            loadPage(this.currentVersion, directory.page, {
+                            loadPage(this.currentVersion, directory, {
                                 onload: () => {
                                     this.render(directory.page!.cache!, index, directory, !rerender);
                                 }, 
