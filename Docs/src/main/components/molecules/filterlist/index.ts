@@ -146,6 +146,7 @@ RHU.module(new Error(), "components/molecules/filterlist", {
                         while (page) {
                             if (page!.dom) {
                                 page.dom.classList.toggle(`${style.hide}`, false);
+                                page.dom.classList.toggle(`${style.filteritem.expanded}`, true);
                             }
                             page = page.parent as Page;
                         }
