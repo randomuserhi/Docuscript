@@ -37,7 +37,7 @@ declare namespace Organisms {
 
 declare namespace Atoms {
     interface Headeritem extends HTMLDivElement {
-        set(label: string, index: number, page?: Page): void;
+        set(label: string, index?: number, page?: Page): void;
         add(item: Node): void;
 
         target: Node;
@@ -91,6 +91,7 @@ RHU.module(new Error(), "components/organisms/docpages", {
                 }
             };
             script.onerror = () => {
+                console.error(`Page not found: ${script.src}`);
                 if (callback && callback.onerror) {
                     callback.onerror();
                 }
@@ -135,6 +136,7 @@ RHU.module(new Error(), "components/organisms/docpages", {
             this.dropdown.addEventListener("click", (e) => {
                 this.classList.toggle(`${style.headeritem.expanded}`);
             });
+            this.classList.toggle(`${style.headeritem.expanded}`, true);
         } as RHU.Macro.Constructor<Atoms.Headeritem>;
 
         headeritem.prototype.set = function(label, index, page) {
@@ -144,7 +146,9 @@ RHU.module(new Error(), "components/organisms/docpages", {
                 const url = new URL(window.location.origin + window.location.pathname);
                 url.searchParams.set("version", page.version);
                 url.searchParams.set("page", page.fullPath());
-                url.searchParams.set("index", index.toString());
+                if (index) {
+                    url.searchParams.set("index", index.toString());
+                }
                 this.label.setAttribute("href", url.toString());
             }
         };
@@ -158,7 +162,9 @@ RHU.module(new Error(), "components/organisms/docpages", {
     })(), "atoms/headeritem", //html
         `
             <div class="${style.headeritem.content}">
-                <span rhu-id="dropdown" class="${style.headeritem.nochildren} ${style.headeritem.dropdown}"></span>
+                <div class="${style.headeritem.align}">
+                    <span rhu-id="dropdown" class="${style.headeritem.nochildren} ${style.headeritem.dropdown}"></span>
+                </div>
                 <a class="${style.headeritem}" rhu-id="label"></a>
             </div>
             <ol rhu-id="list" class="${style.headeritem.children}">
@@ -274,7 +280,9 @@ RHU.module(new Error(), "components/organisms/docpages", {
                                 window.history.pushState(undefined, "", link);
                             }
 
-                            (dom as HTMLElement).scrollIntoView(true);
+                            //(dom as HTMLElement).scrollIntoView(true);
+                            document.documentElement.scroll(0, (dom as HTMLElement).offsetTop - document.documentElement.offsetTop - 
+                                parseInt(getComputedStyle(document.documentElement).getPropertyValue('--Navbar_height')));
                         }
                         
                         let depth = depths.length === 0 ? Infinity : depths[depths.length - 1];
@@ -296,7 +304,9 @@ RHU.module(new Error(), "components/organisms/docpages", {
                             }
 
                             const node = e.detail.target as HTMLElement;
-                            node.scrollIntoView(true);
+                            //node.scrollIntoView(true);
+                            document.documentElement.scroll(0, node.offsetTop - document.documentElement.offsetTop - 
+                                parseInt(getComputedStyle(document.documentElement).getPropertyValue('--Navbar_height')));
                         });
                         item.target = dom;
                         if (index === _i) {
@@ -320,16 +330,48 @@ RHU.module(new Error(), "components/organisms/docpages", {
                     }
                 }
             });
+            // Add a footer element to increase scrollability
+            const footerDom = document.createElement("div");
+            footerDom.style.width = "100%";
+            footerDom.style.height = "70vh";
+            pageDom.append(footerDom);
             if (this.destructor) {
                 this.destructor();
             }
             this.destructor = destructor;
             this.content.replaceChildren(pageDom);
             this.outline.classList.toggle(`${style.outline.hidden}`, frag.childElementCount === 0);
-            this.headerlist.replaceChildren(frag);
+            if (frag.childElementCount !== 0) {
+                // Add first item to list
+                {
+                    const url = new URL(window.location.origin + window.location.pathname);
+                    url.searchParams.set("version", this.currentVersion);
+                    url.searchParams.set("page", this.currentPath);
+                    const link = url.toString();
+                    const item = document.createMacro(headeritem);
+                    item.addEventListener("view", (e) => {
+                        if (index != undefined) {
+                            index = undefined;
+                            window.history.pushState(undefined, "", link);
+                        }
+
+                        const node = e.detail.target as HTMLElement;
+                        //node.scrollIntoView(true);
+                        document.documentElement.scroll(0, node.offsetTop - document.documentElement.offsetTop - 
+                            parseInt(getComputedStyle(document.documentElement).getPropertyValue('--Navbar_height')));
+                    });
+                    item.target = this.path; //this.pageTitle; // Scroll to path cause thats at the very top instead of just to the first title
+                    item.set(directory ? directory.name : "Top", undefined, directory);
+                    this.headerlist.replaceChildren(item);
+                }
+                // Add content to list
+                this.headerlist.append(frag);
+            }
             requestAnimationFrame(() => { 
                 if (scrollTarget) {
-                    scrollTarget.scrollIntoView(true);
+                    //scrollTarget.scrollIntoView(true);
+                    document.documentElement.scroll(0, scrollTarget.offsetTop - document.documentElement.offsetTop - 
+                        parseInt(getComputedStyle(document.documentElement).getPropertyValue('--Navbar_height')));
                 } else if (scrollTop) {
                     document.documentElement.scrollTop = 0;
                 }
@@ -431,7 +473,12 @@ RHU.module(new Error(), "components/organisms/docpages", {
             <rhu-macro rhu-id="filterlist" class="${style.sidebar}" rhu-type="${filterlist}"></rhu-macro>
             <div class="${style.page}">
                 <div class="${style.content}">
-                    <ol rhu-id="path" class="${style.path}"></ol>
+                    <div style="
+                        width: 100%;
+                        overflow-x: auto;
+                    ">
+                        <ol rhu-id="path" class="${style.path}"></ol>
+                    </div>
                     <h1 rhu-id="pageTitle" style="
                         font-size: 2.5rem;
                         font-weight: 700;
@@ -439,9 +486,9 @@ RHU.module(new Error(), "components/organisms/docpages", {
                     "></h1>
                     <div rhu-id="content" class="${rhuDocuscriptStyle.body}"></div>
                 </div>
-                <div rhu-id="outline" class="${style.outline}">
+                <div class="${style.outline}">
                     <div class="${style.outline.content}">
-                        <div style="
+                        <div rhu-id="outline" style="
                             width: 100%;
                             border-radius: 5px;
                             background-color: #eee;

@@ -13,7 +13,7 @@ declare namespace RHU {
 declare namespace RHUDocuscript {
     namespace Molecules {
         interface Codeblock extends HTMLDivElement {
-            setLanguage(lang: string): void;
+            setLanguage(language?: string): void;
             
             code: HTMLElement;
         }
@@ -28,8 +28,12 @@ RHU.module(new Error(), "docuscript/components/molecules/codeblock", {
     const codeblock = Macro((() => {
         const codeblock = function(this: RHUDocuscript.Molecules.Codeblock) {
         } as RHU.Macro.Constructor<RHUDocuscript.Molecules.Codeblock>;
-        codeblock.prototype.setLanguage = function(lang) {
-            this.code.classList.toggle(lang, true);
+        codeblock.prototype.setLanguage = function(language) {
+            if (language) {
+                this.code.classList.toggle(language, true);
+            } else {
+                this.code.classList.toggle("language-plaintext", true);
+            }
             hljs.highlightElement(this.code);
         };
 

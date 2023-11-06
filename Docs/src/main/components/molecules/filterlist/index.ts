@@ -39,6 +39,7 @@ declare namespace Molecules {
         search: HTMLInputElement;
         path: HTMLDivElement;
         list: HTMLDivElement;
+        body: HTMLDivElement;
     }
 }
 
@@ -57,6 +58,8 @@ RHU.module(new Error(), "components/molecules/filterlist", {
 }) {
     const filteritem = Macro((() => {
         const filteritem = function(this: Atoms.Filteritem) {
+            this.classList.toggle(`${style.filteritem.expanded}`, true);
+
             this.label.addEventListener("click", (e) => {
                 this.dispatchEvent(RHU.CustomEvent("view", { target: this.page }));
                 e.preventDefault(); // stop redirect
@@ -97,7 +100,9 @@ RHU.module(new Error(), "components/molecules/filterlist", {
     })(), "atoms/filteritem", //html
         `
             <div rhu-id="body" class="${style.filteritem.content}">
-                <span rhu-id="dropdown" class="${style.filteritem.nochildren} ${style.dropdown}"></span>
+                <div class="${style.filteritem.align}">
+                    <span rhu-id="dropdown" class="${style.filteritem.nochildren} ${style.dropdown}"></span>
+                </div>
                 <a class="${style.filteritem}" rhu-id="label"></a>
             </div>
             <ol rhu-id="list" class="${style.filteritem.children}">
@@ -219,14 +224,15 @@ RHU.module(new Error(), "components/molecules/filterlist", {
         filterlist.prototype.setActive = function(path, seek) {
             this.activePath = path;
 
-            if (seek) {
+            // Sets filterlist path to seeked location => deprecated behaviour
+            /*if (seek) {
                 const parts = docs.split(path);
                 if (parts.length > 1) {
                     this.setPath(parts.slice(0, parts.length - 1).join("/"));
                 } else {
                     this.setPath();
                 }
-            }
+            }*/
 
             if (this.lastActive) {
                 this.lastActive.body.classList.toggle(`${style.filteritem.active}`, false); // TODO(randomuserhi): Make into a filteritem function called "toggleActive" or something
@@ -245,6 +251,23 @@ RHU.module(new Error(), "components/molecules/filterlist", {
                         }
                         page = page.parent as Page;
                     }
+                    if (seek) {
+                        setTimeout(() => {
+                            let scroll: boolean = false;
+                            if (this.body.scrollTop > 0) {
+                                scroll = true;
+                            } else {
+                                this.body.scrollTop = 1;
+                                if (this.body.scrollTop > 0) {
+                                    scroll = true;
+                                    this.body.scrollTop = 0;
+                                }
+                            }
+                            if (scroll) {
+                                this.body.scroll(0, directory.dom!.offsetTop - this.body.offsetTop);
+                            }
+                        }, 100);
+                    }
                 }
             }
         };
@@ -252,7 +275,7 @@ RHU.module(new Error(), "components/molecules/filterlist", {
         return filterlist;
     })(), "molecules/filterlist", //html
         `
-        <div class="${style.content}">
+        <div rhu-id="body" class="${style.content}">
             <div style="font-weight: 800; font-size: 1.125rem;">Version</div>
             <rhu-macro rhu-id="version" rhu-type="${dropdown}" style="
                 width: 100%;
@@ -260,7 +283,12 @@ RHU.module(new Error(), "components/molecules/filterlist", {
             <!--<input rhu-id="search" type="text" style="
                 width: 100%;
             "/>-->
-            <ol rhu-id="path" class="${style.path}"></ol>
+            <div style="
+                width: 100%;
+                overflow-x: auto;
+            ">
+                <ol rhu-id="path" class="${style.path}"></ol>
+            </div>
             <div style="
                 width: 100%;
                 height: 1px;
