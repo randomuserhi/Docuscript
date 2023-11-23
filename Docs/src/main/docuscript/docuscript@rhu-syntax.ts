@@ -53,6 +53,7 @@ declare namespace RHUDocuscript {
         td: {};
         t: never;
         ot: never;
+        center: {};
     }
     type Language = keyof NodeMap;
 
@@ -90,6 +91,8 @@ declare namespace RHUDocuscript {
         td: (...content: (string | Node)[]) => Node<"td">;
 
         desmos: (src: string) => Node<"desmos">;
+
+        center: (...content: (string | Node)[]) => Node<"center">;
     }
 
     type Page = Docuscript.Page<Language, FuncMap>;
@@ -127,6 +130,23 @@ RHU.module(new Error(), "docuscript", {
     }
 
     return {
+        center: {
+            create: function(this: context, ...children) {
+                let node: node<"center"> = {
+                    __type__: "center"
+                };
+
+                mountChildrenText(this, node, children);
+
+                return node;
+            },
+            parse: function(children) {
+                let dom = document.createElement("div");
+                dom.classList.toggle(`${style.center}`, true);
+                dom.append(...children);
+                return dom;
+            }
+        },
         ot: {
             create: function<T>(this: context, options: { 
                 widths?: string[],

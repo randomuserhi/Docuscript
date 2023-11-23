@@ -5,6 +5,7 @@ declare namespace RHU {
             desmos: Style.ClassName;
             inlineCode: Style.ClassName;
             block: Style.ClassName;
+            center: Style.ClassName;
         };
     }
 }
@@ -20,6 +21,15 @@ RHU.module(new Error(), "docuscript/style",
             const block = style.class`
             width: 100%;
             `
+
+            const center = style.class`
+            width: 100%;
+            `;
+            style`
+            ${center}>* {
+                margin: 0 auto;
+            }
+            `;
 
             // TABLES
             style`
@@ -136,7 +146,8 @@ RHU.module(new Error(), "docuscript/style",
                 body,
                 desmos,
                 inlineCode,
-                block
+                block,
+                center
             };
         });
 
