@@ -69,7 +69,6 @@ RHU.module(new Error(), "components/molecules/filterlist", {
     const filteritem = Macro((() => {
         const filteritem = function(this: Atoms.Filteritem) {
             this.classList.toggle(`${style.filteritem.expanded}`, true);
-
             this.label.addEventListener("click", (e) => {
                 this.dispatchEvent(RHU.CustomEvent("view", { target: this.page }));
                 e.preventDefault(); // stop redirect
