@@ -22,7 +22,6 @@ declare namespace RHU {
     }, function({
         docs,
     }) {
-        
         ((docs: Docs) => {
             const stack: string[] = [];
             const dir = (dir: string, func: (docs: (path: string, page?: string, index?: number) => string) => void) => {
@@ -42,7 +41,7 @@ declare namespace RHU {
                 return path;
             };
 
-            set("Question 1", "Q1.js");
+            set("About", "About.js");
             /*dir(set("Deep", "Docs/Deep.js"), (set) => {
                 dir(set("Net", "Docs/Deep/Net.js"), (set) => {
                     set("UDPServer", "Docs/Deep/Net/UDPServer.js");

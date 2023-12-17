@@ -2,7 +2,6 @@ declare namespace RHU {
     interface Modules {
         "docuscript/style": {
             body: Style.ClassName;
-            desmos: Style.ClassName;
             inlineCode: Style.ClassName;
             block: Style.ClassName;
             center: Style.ClassName;
@@ -119,14 +118,6 @@ RHU.module(new Error(), "docuscript/style",
                 content: "•";
             }
             `;
-
-            // DESMOS
-            const desmos = style.class`
-            margin: 8px 0;
-            width: 100%;
-            aspect-ratio: 800/600;
-            border: 0px;
-            `;
             
             // INLINE CODE
             const inlineCode = style.class`
@@ -144,7 +135,6 @@ RHU.module(new Error(), "docuscript/style",
 
             return {
                 body,
-                desmos,
                 inlineCode,
                 block,
                 center
