@@ -7,8 +7,8 @@ RHU.require(new Error(), {
         h, p, frag, br, link, img
     }) => {
         p(
-            "This is the Docuscript document for my Multimedia and Game Development coursework. The Github rep can be found ",
-            link("https://github.com/randomuserhi/gamedev-coursework", "here"), "."
+            "Docuscript is an experimental typescript program for writing quick and dirty documentation using code. The Github rep can be found ",
+            link("https://github.com/randomuserhi/Docuscript", "here"), "."
         );
     }, rhuDocuscript);
 });
