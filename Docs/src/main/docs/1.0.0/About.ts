@@ -3,8 +3,8 @@ RHU.require(new Error(), {
 }, function({
     docs, rhuDocuscript,
 }) {
-    docs.jit = (version, path) => docuscript<RHUDocuscript.Language, RHUDocuscript.FuncMap>(({
-        h, p, frag, br, link, img
+    docs.jit = () => docuscript<RHUDocuscript.Language, RHUDocuscript.FuncMap>(({
+        p, link
     }) => {
         p(
             "Docuscript is an experimental typescript program for writing quick and dirty documentation using code. The Github rep can be found ",

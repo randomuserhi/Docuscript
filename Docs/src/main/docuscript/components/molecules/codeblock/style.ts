@@ -7,9 +7,8 @@ declare namespace RHU {
 
 RHU.module(new Error(), "docuscript/components/molecules/codeblock/style",
     { Style: "rhu/style", theme: "main/theme" },
-    function({ Style, theme })
-    {
-        const style = Style(({ style }) => {
+    function({ Style }) {
+        const style = Style(() => {
 
             return {
             };

@@ -118,7 +118,7 @@ RHU.module(new Error(), "docuscript", {
     type node<T extends RHUDocuscript.Language | undefined = undefined> = RHUDocuscript.Node<T>;
 
     const mountChildren = (context: context, node: node, children: (string | node)[], conversion: (text: string) => node) => {
-        for (let child of children) {
+        for (const child of children) {
             let childNode: node;
             if (typeof child === "string") {
                 childNode = conversion(child);
@@ -131,15 +131,15 @@ RHU.module(new Error(), "docuscript", {
     };
     const mountChildrenText = (context: context, node: node, children: (string | node)[]) => {
         mountChildren(context, node, children, (text) => context.nodes.text(text));
-    }
+    };
     const mountChildrenP = (context: context, node: node, children: (string | node)[]) => {
         mountChildren(context, node, children, (text) => context.nodes.p(text));
-    }
+    };
 
     return {
         center: {
             create: function(this: context, ...children) {
-                let node: node<"center"> = {
+                const node: node<"center"> = {
                     __type__: "center"
                 };
 
@@ -148,7 +148,7 @@ RHU.module(new Error(), "docuscript", {
                 return node;
             },
             parse: function(children) {
-                let dom = document.createElement("div");
+                const dom = document.createElement("div");
                 dom.classList.toggle(`${style.center}`, true);
                 dom.append(...children);
                 return dom;
@@ -160,7 +160,7 @@ RHU.module(new Error(), "docuscript", {
                 headings?: string[],
                 default?: string
             }, headings: (string | ((i: T) => any))[], ...objects: T[]): node<"table"> {
-                let node: node<"table"> = {
+                const node: node<"table"> = {
                     __type__: "table",
                     widths: options.widths
                 };
@@ -184,7 +184,7 @@ RHU.module(new Error(), "docuscript", {
         },
         t: {
             create: function(this: context, widths, ...content) {
-                let node: node<"table"> = {
+                const node: node<"table"> = {
                     __type__: "table",
                     widths
                 };
@@ -199,7 +199,7 @@ RHU.module(new Error(), "docuscript", {
         },
         table: {
             create: function(this: context, widths, ...children) {
-                let node: node<"table"> = {
+                const node: node<"table"> = {
                     __type__: "table",
                     widths
                 };
@@ -217,11 +217,11 @@ RHU.module(new Error(), "docuscript", {
                     }
                 }
 
-                let wrapper = document.createElement("table");
+                const wrapper = document.createElement("table");
                 if (node.widths) {
                     wrapper.classList.toggle(`${style.block}`, true);
                 }
-                let dom = document.createElement("tbody");
+                const dom = document.createElement("tbody");
                 dom.append(...children);
                 wrapper.append(dom);
                 return wrapper;
@@ -229,7 +229,7 @@ RHU.module(new Error(), "docuscript", {
         },
         tr: {
             create: function(this: context, ...children) {
-                let node: node<"tr"> = {
+                const node: node<"tr"> = {
                     __type__: "tr"
                 };
 
@@ -238,14 +238,14 @@ RHU.module(new Error(), "docuscript", {
                 return node;
             },
             parse: function(children) {
-                let dom = document.createElement("tr");
+                const dom = document.createElement("tr");
                 dom.append(...children);
                 return dom;
             }
         },
         td: {
             create: function(this: context, ...children) {
-                let node: node<"td"> = {
+                const node: node<"td"> = {
                     __type__: "td"
                 };
 
@@ -254,14 +254,14 @@ RHU.module(new Error(), "docuscript", {
                 return node;
             },
             parse: function(children) {
-                let dom = document.createElement("td");
+                const dom = document.createElement("td");
                 dom.append(...children);
                 return dom;
             }
         },
         i: {
             create: function(this: context, ...children) {
-                let node: node<"i"> = {
+                const node: node<"i"> = {
                     __type__: "i",
                 };
 
@@ -270,14 +270,14 @@ RHU.module(new Error(), "docuscript", {
                 return node;
             },
             parse: function(children) {
-                let dom = document.createElement("i");
+                const dom = document.createElement("i");
                 dom.append(...children);
                 return dom;
             }
         },
         b: {
             create: function(this: context, ...children) {
-                let node: node<"b"> = {
+                const node: node<"b"> = {
                     __type__: "b",
                 };
 
@@ -286,14 +286,14 @@ RHU.module(new Error(), "docuscript", {
                 return node;
             },
             parse: function(children) {
-                let dom = document.createElement("b");
+                const dom = document.createElement("b");
                 dom.append(...children);
                 return dom;
             }
         },
         ul: {
             create: function(this: context, ...children) {
-                let node: node<"ul"> = {
+                const node: node<"ul"> = {
                     __type__: "ul",
                 };
 
@@ -318,7 +318,7 @@ RHU.module(new Error(), "docuscript", {
         },
         ol: {
             create: function(this: context, ...children) {
-                let node: node<"ol"> = {
+                const node: node<"ol"> = {
                     __type__: "ol",
                 };
 
@@ -343,7 +343,7 @@ RHU.module(new Error(), "docuscript", {
         },
         mj: {
             create: function(this: context, ...children) {
-                let node: node<"mj"> = {
+                const node: node<"mj"> = {
                     __type__: "mj",
                 };
 
@@ -360,7 +360,7 @@ RHU.module(new Error(), "docuscript", {
         },
         link: {
             create: function(this: context, href, ...children) {
-                let node: node<"link"> = {
+                const node: node<"link"> = {
                     __type__: "link",
                     href,
                 };
@@ -379,7 +379,7 @@ RHU.module(new Error(), "docuscript", {
         },
         icode: {
             create: function(this: context, [language], ...children) {
-                let node: node<"icode"> = {
+                const node: node<"icode"> = {
                     __type__: "icode",
                     language,
                 };
@@ -403,7 +403,7 @@ RHU.module(new Error(), "docuscript", {
         },
         code: {
             create: function(this: context, [language], ...children) {
-                let node: node<"code"> = {
+                const node: node<"code"> = {
                     __type__: "code",
                     language,
                 };
@@ -422,7 +422,7 @@ RHU.module(new Error(), "docuscript", {
         },
         pl: {
             create: function(this: context, [path, index], ...children) {
-                let node: node<"pl"> = {
+                const node: node<"pl"> = {
                     __type__: "pl",
                     path,
                     index,
@@ -455,10 +455,10 @@ RHU.module(new Error(), "docuscript", {
                     __type__: "img",
                     src,
                     width
-                }
+                };
             },
             parse: function(_, node) {
-                let img = document.createElement("img");
+                const img = document.createElement("img");
                 img.src = node.src;
                 if (node.width) {
                     img.style.width = node.width;
@@ -484,13 +484,13 @@ RHU.module(new Error(), "docuscript", {
                 };
             },
             parse: function() {
-                let dom = document.createElement("br");
+                const dom = document.createElement("br");
                 return dom;
             }
         },
         p: {
             create: function(this: context, ...children) {
-                let node: node<"p"> = {
+                const node: node<"p"> = {
                     __type__: "p",
                 };
 
@@ -499,7 +499,7 @@ RHU.module(new Error(), "docuscript", {
                 return node;
             },
             parse: function(children) {
-                let dom = document.createElement("p");
+                const dom = document.createElement("p");
                 dom.classList.toggle(`${style.block}`, true);
                 dom.append(...children);
                 return dom;
@@ -537,7 +537,7 @@ RHU.module(new Error(), "docuscript", {
         },
         h: {
             create: function(this: context, heading, label, ...children) {
-                let node: node<"h"> = {
+                const node: node<"h"> = {
                     __type__: "h",
                     heading,
                     label,
@@ -586,7 +586,7 @@ RHU.module(new Error(), "docuscript", {
         },
         div: {
             create: function(this: context, ...children) {
-                let node: node<"div"> = {
+                const node: node<"div"> = {
                     __type__: "div",
                 };
                 
@@ -595,7 +595,7 @@ RHU.module(new Error(), "docuscript", {
                 return node;
             },
             parse: function(children) {
-                let dom = document.createElement("div");
+                const dom = document.createElement("div");
                 dom.classList.toggle(`${style.block}`, true);
                 dom.append(...children);
                 return dom;
@@ -603,7 +603,7 @@ RHU.module(new Error(), "docuscript", {
         },
         frag: {
             create: function (this: context, ...children) {
-                let node: node<"frag"> = {
+                const node: node<"frag"> = {
                     __type__: "frag",
                 };
                 
@@ -612,7 +612,7 @@ RHU.module(new Error(), "docuscript", {
                 return node;
             },
             parse: function(children) {
-                let dom = new DocumentFragment();
+                const dom = new DocumentFragment();
                 dom.append(...children);
                 return dom;
             },

@@ -10,16 +10,15 @@ declare namespace RHU {
 }
 
 RHU.module(new Error(), "docuscript/style",
-    { Style: "rhu/style", theme: "main/theme" },
-    function({ Style, theme })
-    {
+    { Style: "rhu/style" },
+    function({ Style }) {
         const style = Style(({ style }) => {
             const body = style.class`
             `;
 
             const block = style.class`
             width: 100%;
-            `
+            `;
 
             const center = style.class`
             width: 100%;
@@ -42,7 +41,7 @@ RHU.module(new Error(), "docuscript/style",
                 padding: 0.5rem;
                 border-block-start: 1px solid #333;
             }
-            `
+            `;
 
             // ITALICS & BOLD
             style`
@@ -52,7 +51,7 @@ RHU.module(new Error(), "docuscript/style",
             ${body} b {
                 font-weight: bold;
             }
-            `
+            `;
 
             // HEADINGS
             style`

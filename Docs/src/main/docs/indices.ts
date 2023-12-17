@@ -9,8 +9,8 @@ declare namespace RHU {
 (() => {
     let DOCUSCRIPT_ROOT = "";
     if (document.currentScript) {
-        let s = document.currentScript as HTMLScriptElement;
-        let r = s.src.match(/(.*)[/\\]/);
+        const s = document.currentScript as HTMLScriptElement;
+        const r = s.src.match(/(.*)[/\\]/);
         if (r)
             DOCUSCRIPT_ROOT = r[1] || "";
     } else {

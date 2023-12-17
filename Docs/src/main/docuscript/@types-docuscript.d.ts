@@ -11,7 +11,7 @@ interface Docuscript {
         }): [DocumentFragment, () => void];
 }
 
-declare var docuscript: Docuscript;
+declare let docuscript: Docuscript;
 interface Window {
     docuscript: Docuscript;
 }

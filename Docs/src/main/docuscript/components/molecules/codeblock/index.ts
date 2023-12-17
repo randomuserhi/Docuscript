@@ -39,16 +39,16 @@ RHU.module(new Error(), "docuscript/components/molecules/codeblock", {
 
         codeblock.prototype.append = function(...args) {
             return HTMLElement.prototype.append.call(this.code, ...args);
-        }
+        };
 
         return codeblock;
     })(), "docuscript/molecules/codeblock", //html
-        `
+    `
         <pre><code rhu-id="code"></code></pre>
         `, {
-            element: //html
+        element: //html
             `<div></div>`
-        });
+    });
 
     return codeblock;
 });
