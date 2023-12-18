@@ -87,14 +87,14 @@ declare namespace RHUDocuscript {
 }
 
 RHU.module(new Error(), "docuscript", {
-    helper: "docuscript/@helper", style: "docuscript/@style",
+    Macro: "rhu/macro", helper: "docuscript/@helper", style: "docuscript/@style",
     tables: "docuscript/tables",
     code: "docuscript/code",
     images: "docuscript/images",
     lists: "docuscript/lists",
     mathjax: "docuscript/mathjax",
 }, function({
-    helper, style,
+    Macro, helper, style,
     code, 
     tables,
     images,
@@ -298,6 +298,19 @@ RHU.module(new Error(), "docuscript", {
             },
             parse: function(children, node) {
                 const h = node as node<"h">;
+
+                /*const tag = `h${h.heading}`;
+                const [dom, frag] = Macro.anon<{
+                    heading: HTMLHeadingElement
+                }>(//html
+                    `
+                    <${tag} rhu-id="heading" style="display: flex; gap: 8px; align-items: center;" class="${style.block}">
+                    </${tag}>
+                    `);
+                if (h.link) {
+
+                }*/
+
                 const dom = document.createElement(`h${h.heading}`);
                 dom.style.display = "flex";
                 dom.style.gap = "8px";
