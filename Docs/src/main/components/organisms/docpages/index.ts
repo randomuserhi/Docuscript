@@ -51,7 +51,7 @@ declare namespace Atoms {
 RHU.module(new Error(), "components/organisms/docpages", { 
     Macro: "rhu/macro", style: "components/organsisms/docpages/style",
     filterlist: "components/molecules/filterlist",
-    rhuDocuscriptStyle: "docuscript/style", rhuDocuscriptPages: "docuscript/pages",
+    rhuDocuscriptStyle: "docuscript/@style", rhuDocuscriptPages: "docuscript/pages",
     docs: "docs", indices: "docs/indices",
 }, function({ 
     Macro, style,

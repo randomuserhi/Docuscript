@@ -19,6 +19,7 @@
         const Element_getAttribute = Function.call.bind(Element.prototype.getAttribute);
         const Element_hasAttribute = Function.call.bind(Element.prototype.hasAttribute);
         const Element_removeAttribute = Function.call.bind(Element.prototype.removeAttribute);
+        const Element_append = Function.call.bind(Element.prototype.append);
         const Descriptor_childNodes = Object.getOwnPropertyDescriptor(Node.prototype, "childNodes");
         if (!RHU.exists(Descriptor_childNodes))
             throw new ReferenceError("Node.prototype.childNodes is null or undefined.");
@@ -149,15 +150,120 @@
             template.innerHTML = str;
             return template.content;
         };
+        const _anon = function (source, parseStack, donor, root = false) {
+            let doc;
+            if (RHU.exists(donor)) {
+                donor.innerHTML = source;
+                doc = new DocumentFragment();
+                doc.append(donor);
+            }
+            else {
+                doc = Macro.parseDomString(source);
+            }
+            const properties = {};
+            const checkProperty = (identifier) => {
+                if (Object.hasOwnProperty.call(properties, identifier))
+                    throw new SyntaxError(`Identifier '${identifier.toString()}' already exists.`);
+                return true;
+            };
+            const nested = [...doc.querySelectorAll("rhu-macro")];
+            for (const el of nested) {
+                if (el === donor)
+                    continue;
+                const typename = "rhu-type";
+                const type = Element_getAttribute(el, typename);
+                Element.prototype.removeAttribute.call(el, typename);
+                const definition = templates.get(type);
+                if (!RHU.exists(definition))
+                    throw new TypeError(`Could not expand <rhu-macro> of type '${type}'. Macro definition does not exist.`);
+                const options = definition.options;
+                if (options.floating) {
+                    if (Element_hasAttribute(el, "rhu-id")) {
+                        const identifier = Element_getAttribute(el, "rhu-id");
+                        Element.prototype.removeAttribute.call(el, "rhu-id");
+                        checkProperty(identifier);
+                        RHU.definePublicAccessor(properties, identifier, {
+                            get: function () { return el[symbols.macro]; }
+                        });
+                    }
+                    try {
+                        _parse(el, type, parseStack);
+                    }
+                    catch (e) {
+                        errorHandle("parser", type, e, root);
+                    }
+                }
+                else {
+                    const doc = Macro.parseDomString(options.element);
+                    const macro = doc.children[0];
+                    if (!RHU.exists(macro))
+                        throw new SyntaxError(`No valid container element to convert into macro was found for '${type}'.`);
+                    else {
+                        for (let i = 0; i < el.attributes.length; ++i)
+                            macro.setAttribute(el.attributes[i].name, el.attributes[i].value);
+                        el.replaceWith(macro);
+                        Element_setAttribute(macro, "rhu-macro", type);
+                    }
+                }
+            }
+            const referencedElements = doc.querySelectorAll("*[rhu-id]");
+            for (const el of referencedElements) {
+                if (el === donor)
+                    continue;
+                const identifier = Element_getAttribute(el, "rhu-id");
+                Element.prototype.removeAttribute.call(el, "rhu-id");
+                checkProperty(identifier);
+                RHU.definePublicAccessor(properties, identifier, {
+                    get: function () { return el[symbols.macro]; }
+                });
+            }
+            for (const el of doc.querySelectorAll("*[rhu-macro]")) {
+                if (el === donor)
+                    continue;
+                const type = Element_getAttribute(el, "rhu-macro");
+                try {
+                    _parse(el, type, parseStack);
+                }
+                catch (e) {
+                    errorHandle("parser", type, e, root);
+                }
+            }
+            const tempContainer = document.createElement("div");
+            Element_append(tempContainer, ...doc.childNodes);
+            const xPath = "//comment()";
+            const query = xPathEvaluator.evaluate(xPath, tempContainer, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
+            for (let i = 0, length = query.snapshotLength; i < length; ++i) {
+                const self = query.snapshotItem(i);
+                if (RHU.exists(self.parentNode))
+                    self.parentNode.removeChild(self);
+            }
+            doc.append(...tempContainer.childNodes);
+            return [properties, doc];
+        };
+        Macro.anon = function (source) {
+            return _anon(source, [], undefined, true);
+        };
         const clonePrototypeChain = function (prototype, last) {
             const next = Object.getPrototypeOf(prototype);
             if (next === Object.prototype)
                 return RHU.clone(prototype, last);
             return RHU.clone(prototype, clonePrototypeChain(next, last));
         };
-        let parseStack = [];
+        const errorHandle = function (type, macro, e, root) {
+            switch (type) {
+                case "parser": {
+                    if (typeof e === "string") {
+                        throw e;
+                    }
+                }
+                default: {
+                    const message = typeof e === "string" ? e : `\n\n${e.stack}`;
+                    throw `\n[__${type}__] ${root ? "Macro.Parse(" : "_parse("}${macro})${message}`;
+                }
+            }
+        };
         const watching = new Map();
-        const _parse = function (element, type, force = false) {
+        const _parse = function (element, type, parseStack, root = false, force = false) {
             if (!RHU.exists(type))
                 type = "";
             if (element.tagName === "RHU-MACRO") {
@@ -216,19 +322,13 @@
                 }
                 Object.setPrototypeOf(target, proxy);
             }
-            let doc;
-            const source = RHU.exists(definition.source) ? definition.source : "";
+            let donor = undefined;
             if (!options.floating) {
                 slot = document.createElement("div");
                 element.replaceWith(slot);
-                element.innerHTML = source;
-                doc = new DocumentFragment();
-                doc.append(element);
+                donor = element;
             }
-            else {
-                doc = Macro.parseDomString(source);
-            }
-            const properties = {};
+            const [properties, fragment] = _anon(RHU.exists(definition.source) ? definition.source : "", parseStack, donor);
             const checkProperty = (identifier) => {
                 if (Object.hasOwnProperty.call(properties, identifier))
                     throw new SyntaxError(`Identifier '${identifier.toString()}' already exists.`);
@@ -236,69 +336,15 @@
                     throw new SyntaxError(`Identifier '${identifier.toString()}' already exists.`);
                 return true;
             };
-            const nested = [...doc.querySelectorAll("rhu-macro")];
-            for (const el of nested) {
-                if (el === element)
-                    continue;
-                const typename = "rhu-type";
-                const type = Element_getAttribute(el, typename);
-                Element.prototype.removeAttribute.call(el, typename);
-                const definition = templates.get(type);
-                if (!RHU.exists(definition))
-                    throw new TypeError(`Could not expand <rhu-macro> of type '${type}'. Macro definition does not exist.`);
-                const options = definition.options;
-                if (options.floating) {
-                    if (Element_hasAttribute(el, "rhu-id")) {
-                        const identifier = Element_getAttribute(el, "rhu-id");
-                        Element.prototype.removeAttribute.call(el, "rhu-id");
-                        checkProperty(identifier);
-                        RHU.definePublicAccessor(properties, identifier, {
-                            get: function () { return el[symbols.macro]; }
-                        });
-                    }
-                    _parse(el, type);
-                }
-                else {
-                    const doc = Macro.parseDomString(options.element);
-                    const macro = doc.children[0];
-                    if (!RHU.exists(macro))
-                        throw new SyntaxError(`No valid container element to convert into macro was found for '${type}'.`);
-                    else {
-                        for (let i = 0; i < el.attributes.length; ++i)
-                            macro.setAttribute(el.attributes[i].name, el.attributes[i].value);
-                        el.replaceWith(macro);
-                        Element_setAttribute(macro, "rhu-macro", type);
-                    }
-                }
+            if (options.floating) {
+                Element_append(element, fragment);
             }
-            const referencedElements = doc.querySelectorAll("*[rhu-id]");
-            for (const el of referencedElements) {
-                if (el === element)
-                    continue;
-                const identifier = Element_getAttribute(el, "rhu-id");
-                Element.prototype.removeAttribute.call(el, "rhu-id");
-                checkProperty(identifier);
-                RHU.definePublicAccessor(properties, identifier, {
-                    get: function () { return el[symbols.macro]; }
-                });
-            }
-            for (const el of doc.querySelectorAll("*[rhu-macro]")) {
-                if (el === element)
-                    continue;
-                _parse(el, Element_getAttribute(el, "rhu-macro"));
-            }
-            if (options.floating)
-                Element.prototype.append.call(element, ...doc.childNodes);
-            else
-                slot.replaceWith(element);
-            const xPath = "//comment()";
-            const query = xPathEvaluator.evaluate(xPath, element, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
-            for (let i = 0, length = query.snapshotLength; i < length; ++i) {
-                const self = query.snapshotItem(i);
-                if (RHU.exists(self.parentNode))
-                    self.parentNode.removeChild(self);
+            else {
+                slot.replaceWith(fragment);
             }
             if (RHU.exists(options.content)) {
+                if (typeof options.content !== "string")
+                    throw new TypeError("Option 'content' must be a string.");
                 checkProperty(options.content);
                 properties[options.content] = [...Node_childNodes(element)];
             }
@@ -326,7 +372,7 @@
                 constructor.call(target);
             }
             catch (e) {
-                throw new Error(`Constructor for macro of type '${type}' failed unexpectedly:\n${e.toString()}`);
+                errorHandle("constructor", type, e, root);
             }
             if (RHU.exists(oldType)) {
                 let old = templates.get(oldType);
@@ -348,13 +394,7 @@
             parseStack.pop();
         };
         Macro.parse = function (element, type, force = false) {
-            try {
-                parseStack = [];
-                _parse(element, type, force);
-            }
-            catch (e) {
-                throw new Error(`Failed to parse macro of type '${type}':\n${e.toString()}\n\nParse Stack:\n${parseStack.join("\n- ")}`);
-            }
+            _parse(element, type, [], true, force);
         };
         const load = function () {
             const expand = [...document.getElementsByTagName("rhu-macro")];

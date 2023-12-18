@@ -1,6 +1,6 @@
 declare namespace RHU {
     interface Modules {
-        "docuscript/components/molecules/codeblock": Macro.Template<"docuscript/molecules/codeblock">;
+        "docuscript/code/@components/molecules/codeblock": Macro.Template<"docuscript/molecules/codeblock">;
     }
 
     namespace Macro {
@@ -20,10 +20,10 @@ declare namespace RHUDocuscript {
     }
 }
 
-RHU.module(new Error(), "docuscript/components/molecules/codeblock", { 
-    Macro: "rhu/macro", style: "docuscript/components/molecules/codeblock/style",
+RHU.module(new Error(), "docuscript/code/@components/molecules/codeblock", { 
+    Macro: "rhu/macro", style: "docuscript/code/@components/molecules/codeblock/style",
 }, function({ 
-    Macro, style,
+    Macro,
 }) {
     const codeblock = Macro((() => {
         const codeblock = function(this: RHUDocuscript.Molecules.Codeblock) {
