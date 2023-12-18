@@ -6,25 +6,25 @@ declare namespace RHU {
 
 declare namespace RHUDocuscript.Tables {
     interface NodeMap {
-        table: {
+        table: never;
+        "table:wrapper": {
             widths?: string[];
         };
-        tr: {};
-        td: {};
-        t: never;
-        ot: never;
+        "table:row": {};
+        "table:cell": {};
+        "table:smart": never;
     }
     type Language = keyof NodeMap;
 
     interface FuncMap extends Docuscript.NodeFuncMap<Language> {
-        ot: <T>( options: { 
+        table: (widths: string[] | undefined, ...content: (string | Node)[][]) => Node<"table:wrapper">;
+        "table:smart": <T>( options: { 
             widths?: string[],
             headings?: string[]
-        }, headings: (string | ((i: T) => any))[], ...objects: T[]) => Node<"table">;
-        t: (widths: string[] | undefined, ...content: (string | Node)[][]) => Node<"table">;
-        table: (widths: string[] | undefined, ...content: (string | Node<"tr">)[]) => Node<"table">;
-        tr: (...content: (string | Node<"td">)[]) => Node<"tr">;
-        td: (...content: (string | Node)[]) => Node<"td">;
+        }, headings: (string | ((i: T) => any))[], ...objects: T[]) => Node<"table:wrapper">;
+        "table:wrapper": (widths: string[] | undefined, ...content: (string | Node<"table:row">)[]) => Node<"table:wrapper">;
+        "table:row": (...content: (string | Node<"table:cell">)[]) => Node<"table:row">;
+        "table:cell": (...content: (string | Node)[]) => Node<"table:cell">;
     }
 
     type Parser = Docuscript.Parser<Language, FuncMap>;
@@ -41,19 +41,34 @@ declare namespace RHUDocuscript.Tables {
         type context = RHUDocuscript.Context;
         type node<T extends RHUDocuscript.Language | undefined = undefined> = RHUDocuscript.Node<T>;
 
+        const Import = function<T extends {
+            [k in PropertyKey]?: RHUDocuscript.Language;
+        }>(context: context, imports: T): { [k in keyof T]: context["nodes"][T[k] extends keyof context["nodes"] ? T[k] : never] } {
+            let nodes: { [k in keyof T]: (...args: any[]) => any } = {} as { [k in keyof T]: (...args: any[]) => any };
+            for (const key in imports) {
+                nodes[key] = context.nodes[imports[key] as keyof context["nodes"]];
+            }
+            return nodes;
+        };
+
         return {
-            ot: {
+            "table:smart": {
                 create: function<T>(this: context, options: { 
                     widths?: string[],
                     headings?: string[],
                     default?: string
-                }, headings: (string | ((i: T) => any))[], ...objects: T[]): node<"table"> {
-                    const node: node<"table"> = {
-                        __type__: "table",
+                }, headings: (string | ((i: T) => any))[], ...objects: T[]): node<"table:wrapper"> {
+                    const node: node<"table:wrapper"> = {
+                        __type__: "table:wrapper",
                         widths: options.widths
                     };
 
-                    const { td, tr, b, i } = this.nodes;
+                    const { td, tr, b, i } = Import(this, {
+                        td: "table:cell",
+                        tr: "table:row",
+                        b: "b",
+                        i: "i"
+                    });
                     if (options.headings) {
                         this.remount(tr(...options.headings.map(h => td(b(i(h))))), node);
                     }
@@ -70,14 +85,17 @@ declare namespace RHUDocuscript.Tables {
                     return node;
                 },
             },
-            t: {
+            "table": {
                 create: function(this: context, widths, ...content) {
-                    const node: node<"table"> = {
-                        __type__: "table",
+                    const node: node<"table:wrapper"> = {
+                        __type__: "table:wrapper",
                         widths
                     };
 
-                    const { td, tr } = this.nodes;
+                    const { td, tr } = Import(this, {
+                        td: "table:cell",
+                        tr: "table:row"
+                    });
                     for (const row of content) {
                         this.remount(tr(...row.map(r => td(r))), node);
                     }
@@ -85,10 +103,10 @@ declare namespace RHUDocuscript.Tables {
                     return node;
                 },
             },
-            table: {
+            "table:wrapper": {
                 create: function(this: context, widths, ...children) {
-                    const node: node<"table"> = {
-                        __type__: "table",
+                    const node: node<"table:wrapper"> = {
+                        __type__: "table:wrapper",
                         widths
                     };
 
@@ -115,10 +133,10 @@ declare namespace RHUDocuscript.Tables {
                     return wrapper;
                 }
             },
-            tr: {
+            "table:row": {
                 create: function(this: context, ...children) {
-                    const node: node<"tr"> = {
-                        __type__: "tr"
+                    const node: node<"table:row"> = {
+                        __type__: "table:row"
                     };
 
                     helper.mountChildrenText(this, node, children);
@@ -131,10 +149,10 @@ declare namespace RHUDocuscript.Tables {
                     return dom;
                 }
             },
-            td: {
+            "table:cell": {
                 create: function(this: context, ...children) {
-                    const node: node<"td"> = {
-                        __type__: "td"
+                    const node: node<"table:cell"> = {
+                        __type__: "table:cell"
                     };
 
                     helper.mountChildrenText(this, node, children);

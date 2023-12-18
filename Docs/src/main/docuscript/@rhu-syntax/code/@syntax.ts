@@ -6,18 +6,18 @@ declare namespace RHU {
 
 declare namespace RHUDocuscript.Code {
     interface NodeMap {
-        code: {
+        "code:block": {
             language?: string;
         };
-        icode: {
+        "code:inline": {
             language?: string;  
         };
     }
     type Language = keyof NodeMap;
 
     interface FuncMap extends Docuscript.NodeFuncMap<Language> {
-        code: (params: [language?: string], ...content: (string)[]) => Node<"code">;
-        icode: (params: [language?: string], ...content: (string)[]) => Node<"icode">;
+        "code:block": (params: [language?: string], ...content: (string)[]) => Node<"code:block">;
+        "code:inline": (params: [language?: string], ...content: (string)[]) => Node<"code:inline">;
     }
 
     type Parser = Docuscript.Parser<Language, FuncMap>;
@@ -37,10 +37,10 @@ declare namespace RHUDocuscript.Code {
         type node<T extends RHUDocuscript.Language | undefined = undefined> = RHUDocuscript.Node<T>;
 
         return {
-            icode: {
+            "code:inline": {
                 create: function(this: context, [language], ...children) {
-                    const node: node<"icode"> = {
-                        __type__: "icode",
+                    const node: node<"code:inline"> = {
+                        __type__: "code:inline",
                         language,
                     };
 
@@ -61,10 +61,10 @@ declare namespace RHUDocuscript.Code {
                     return dom;
                 },
             },
-            code: {
+            "code:block": {
                 create: function(this: context, [language], ...children) {
-                    const node: node<"code"> = {
-                        __type__: "code",
+                    const node: node<"code:block"> = {
+                        __type__: "code:block",
                         language,
                     };
 

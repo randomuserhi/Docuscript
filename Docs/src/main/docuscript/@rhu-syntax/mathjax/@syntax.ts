@@ -6,12 +6,12 @@ declare namespace RHU {
 
 declare namespace RHUDocuscript.MathJax {
     interface NodeMap {
-        mj: {};
+        mathjax: {};
     }
     type Language = keyof NodeMap;
 
     interface FuncMap extends Docuscript.NodeFuncMap<Language> {
-        mj: (...children: (string | Node)[]) => Node<"mj">;
+        mathjax: (...children: (string | Node)[]) => Node<"mathjax">;
     }
 
     type Parser = Docuscript.Parser<Language, FuncMap>;
@@ -29,10 +29,10 @@ declare namespace RHUDocuscript.MathJax {
         type node<T extends RHUDocuscript.Language | undefined = undefined> = RHUDocuscript.Node<T>;
 
         return {
-            mj: {
+            mathjax: {
                 create: function(this: context, ...children) {
-                    const node: node<"mj"> = {
-                        __type__: "mj",
+                    const node: node<"mathjax"> = {
+                        __type__: "mathjax",
                     };
 
                     helper.mountChildrenText(this, node, children);
