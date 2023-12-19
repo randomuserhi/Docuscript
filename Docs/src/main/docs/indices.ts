@@ -42,8 +42,11 @@ declare namespace RHU {
             };
 
             set("About", "About.js");
-            dir(set("Setup", "Setup.js"), (set) => {
-                set("Creating a Docuscript Project", "Setup/CreatingDocuscript.js");
+            dir(set("Creating a Docuscript Project", "CreatingDocuscript.js"), (set) => {
+                set("Getting Started", "CreatingDocuscript/GettingStarted.js");
+            });
+            dir(set("Creating a Language Specification", "CreatingLanguage.js"), (set) => {
+                set("Getting Started", "CreatingLanguage/GettingStarted.js");
             });
         })(docs.create("1.0.0", "About"));
 
