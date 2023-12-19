@@ -12,14 +12,14 @@ declare namespace RHUDocuscript {
         Lists.NodeMap &
         MathJax.NodeMap;
 
-    type NodeLanguageIncludes = 
-        Tables.Language & 
-        Code.Language &
-        Images.Language &
-        Lists.Language &
-        MathJax.Language;
+    type NodeFuncMapIncludes = 
+        Tables.FuncMap &
+        Code.FuncMap &
+        Images.FuncMap &
+        Lists.FuncMap &
+        MathJax.FuncMap;
 
-    interface NodeMap extends NodeMapIncludes
+    interface BaseNodeMap
     {
         text: {
             text: string;
@@ -53,9 +53,12 @@ declare namespace RHUDocuscript {
         b: {};
         center: {};
     }
-    type Language = keyof NodeMap;
+    type NodeMap = BaseNodeMap & NodeMapIncludes;
+    
+    type BaseLanguage = keyof BaseNodeMap;
+    type Language = BaseLanguage | keyof NodeFuncMapIncludes;
 
-    interface FuncMap extends Docuscript.NodeFuncMap<Language>, Docuscript.NodeFuncMap<NodeLanguageIncludes>
+    interface BaseFuncMap extends Docuscript.NodeFuncMap<BaseLanguage>
     {
         text: (text: string) => Node<"text">;
         br: () => Node<"br">;
@@ -79,6 +82,7 @@ declare namespace RHUDocuscript {
 
         center: (...content: (string | Node)[]) => Node<"center">;
     }
+    type FuncMap = BaseFuncMap & NodeFuncMapIncludes;
 
     type Page = Docuscript.Page<Language, FuncMap>;
     type Parser = Docuscript.Parser<Language, FuncMap>;
@@ -299,47 +303,42 @@ RHU.module(new Error(), "docuscript", {
             parse: function(children, node) {
                 const h = node as node<"h">;
 
-                /*const tag = `h${h.heading}`;
-                const [dom, frag] = Macro.anon<{
+                const tag = `h${h.heading}`;
+                const dom = Macro.anon<{
                     heading: HTMLHeadingElement
-                }>(//html
+                }>(
                     `
                     <${tag} rhu-id="heading" style="display: flex; gap: 8px; align-items: center;" class="${style.block}">
                     </${tag}>
-                    `);
-                if (h.link) {
+                    `)[0];
 
-                }*/
-
-                const dom = document.createElement(`h${h.heading}`);
-                dom.style.display = "flex";
-                dom.style.gap = "8px";
-                dom.style.alignItems = "center";
-                dom.classList.toggle(`${style.block}`, true);
+                let linkDom: HTMLAnchorElement | undefined = undefined;
+                const linkHandle = (e: MouseEvent) => {
+                    e.preventDefault();
+                    if (h.onclick) {
+                        h.onclick();
+                    }
+                };
                 if (h.link) {
-                    const wrapper = document.createElement("div");
-                    wrapper.style.alignSelf = "stretch";
-                    wrapper.style.flexShrink = "0";
-                    wrapper.style.paddingTop = "0.8rem";
-                    wrapper.style.display = "flex";
-                    const link = document.createElement("a");
-                    link.href = h.link;
-                    link.innerHTML = "";
-                    link.style.fontFamily = "docons";
-                    link.style.fontSize = "1rem";
-                    link.style.textDecoration = "inherit";
-                    link.style.color = "inherit";
-                    link.addEventListener("click", (e) => {  
-                        e.preventDefault();
-                        if (h.onclick) {
-                            h.onclick(); 
-                        }
-                    });
-                    wrapper.append(link);
-                    dom.append(wrapper);
+                    const anon = Macro.anon<{
+                        link: HTMLAnchorElement;
+                    }>(//html
+                        `
+                        <div style="align-self: stretch; flex-shrink: 0; padding-top: 0.8rem; display: flex;">
+                            <a rhu-id="link" href="${h.link}" style="font-family: 'docons'; font-size: 1rem; text-decoration: inherit; color: inherit;"></a>
+                        </div>
+                        `);
+                    linkDom = anon[0].link;
+                    linkDom.addEventListener("click", linkHandle);
+                    dom.heading.append(anon[1]);
                 }
-                dom.append(...children);
-                return dom;
+                dom.heading.append(...children);
+                return [dom.heading, {dom: linkDom, handle: linkHandle}];
+            },
+            destructor: function(data: { dom?: HTMLAnchorElement, handle: (e: MouseEvent) => void }) {
+                if (data.dom) {
+                    data.dom.removeEventListener("click", data.handle);
+                }
             }
         },
         div: {

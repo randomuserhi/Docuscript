@@ -4,6 +4,9 @@ declare namespace RHU {
             mountChildren(context: RHUDocuscript.Context, node: RHUDocuscript.Node<undefined>, children: (string | RHUDocuscript.Node<undefined>)[], conversion: (text: string) => RHUDocuscript.Node<undefined>): void;
             mountChildrenText(context: RHUDocuscript.Context, node: RHUDocuscript.Node<undefined>, children: (string | RHUDocuscript.Node<undefined>)[]): void;
             mountChildrenP(context: RHUDocuscript.Context, node: RHUDocuscript.Node<undefined>, children: (string | RHUDocuscript.Node<undefined>)[]): void;
+            include<T extends {
+                [k in PropertyKey]?: RHUDocuscript.Language;
+            }>(context: RHUDocuscript.Context, imports: T): { [k in keyof T]: RHUDocuscript.FuncMap[T[k] extends keyof RHUDocuscript.FuncMap ? T[k] : never] }
         };
     }
 }
@@ -12,6 +15,16 @@ RHU.module(new Error(), "docuscript/@helper", {
 }, function() {
     type context = RHUDocuscript.Context;
     type node<T extends RHUDocuscript.Language | undefined = undefined> = RHUDocuscript.Node<T>;
+
+    const include = function<T extends {
+        [k in PropertyKey]?: RHUDocuscript.Language;
+    }>(context: context, imports: T): { [k in keyof T]: RHUDocuscript.FuncMap[T[k] extends keyof RHUDocuscript.FuncMap ? T[k] : never] } {
+        const nodes: { [k in keyof T]: (...args: any[]) => any } = {} as { [k in keyof T]: (...args: any[]) => any };
+        for (const key in imports) {
+            nodes[key] = context.nodes[imports[key] as keyof RHUDocuscript.FuncMap];
+        }
+        return nodes;
+    };
 
     const mountChildren = (context: context, node: node, children: (string | node)[], conversion: (text: string) => node) => {
         for (const child of children) {
@@ -36,5 +49,6 @@ RHU.module(new Error(), "docuscript/@helper", {
         mountChildren,
         mountChildrenText,
         mountChildrenP,
+        include,
     };
 });

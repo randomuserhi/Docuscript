@@ -41,16 +41,6 @@ declare namespace RHUDocuscript.Tables {
         type context = RHUDocuscript.Context;
         type node<T extends RHUDocuscript.Language | undefined = undefined> = RHUDocuscript.Node<T>;
 
-        const Import = function<T extends {
-            [k in PropertyKey]?: RHUDocuscript.Language;
-        }>(context: context, imports: T): { [k in keyof T]: context["nodes"][T[k] extends keyof context["nodes"] ? T[k] : never] } {
-            let nodes: { [k in keyof T]: (...args: any[]) => any } = {} as { [k in keyof T]: (...args: any[]) => any };
-            for (const key in imports) {
-                nodes[key] = context.nodes[imports[key] as keyof context["nodes"]];
-            }
-            return nodes;
-        };
-
         return {
             "table:smart": {
                 create: function<T>(this: context, options: { 
@@ -63,7 +53,7 @@ declare namespace RHUDocuscript.Tables {
                         widths: options.widths
                     };
 
-                    const { td, tr, b, i } = Import(this, {
+                    const { td, tr, b, i } = helper.include(this, {
                         td: "table:cell",
                         tr: "table:row",
                         b: "b",
@@ -92,7 +82,7 @@ declare namespace RHUDocuscript.Tables {
                         widths
                     };
 
-                    const { td, tr } = Import(this, {
+                    const { td, tr } = helper.include(this, {
                         td: "table:cell",
                         tr: "table:row"
                     });

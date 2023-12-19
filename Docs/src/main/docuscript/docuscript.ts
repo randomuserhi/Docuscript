@@ -105,14 +105,21 @@
         },
     };
 
-    const docuscript = window.docuscript = function<T extends string, FuncMap extends Docuscript.NodeFuncMap<T>>(generator: (nodes: Docuscript.ParserNodes<T, FuncMap>) => void, parser: Docuscript.Parser<T, FuncMap> = defaultParser as any): Docuscript.Page<T, FuncMap> {
+    const docuscript = window.docuscript = function<Language extends string, FuncMap extends Docuscript.NodeFuncMap<Language>>(
+        generator: (
+            nodes: Docuscript.ParserNodes<Language, FuncMap>, 
+            include: <T extends {
+                [k in PropertyKey]?: Language;
+            }>(imports: T) => { [k in keyof T]: Docuscript.ParserNodes<Language, FuncMap>[T[k] extends keyof Docuscript.ParserNodes<Language, FuncMap> ? T[k] : never] }
+            ) => void, 
+        parser: Docuscript.Parser<Language, FuncMap> = defaultParser as any): Docuscript.Page<Language, FuncMap> {
         return {
             parser,
             generator
         };
     } as Docuscript;
 
-    docuscript.parse = function<T extends string, FuncMap extends Docuscript.NodeFuncMap<T>>(page: Docuscript.Page<T, FuncMap>) {
+    docuscript.parse = function<Language extends string, FuncMap extends Docuscript.NodeFuncMap<Language>>(page: Docuscript.Page<Language, FuncMap>) {
         let content: Docuscript.Node<any>[] = [];
         
         const nodes: any = {};
@@ -127,7 +134,7 @@
                 return node;
             };
         }
-        const docuscriptContext: Docuscript.Context<T, Docuscript.NodeFuncMap<T>> = {
+        const docuscriptContext: Docuscript.Context<Language, Docuscript.NodeFuncMap<Language>> = {
             nodes,
             remount: (child, parent) => {
                 if (child.__parent__ && child.__parent__.__children__) {
@@ -143,7 +150,21 @@
                 }
             } 
         };
-        page.generator(context);
+        const include = <T extends { 
+            [k in PropertyKey]?: Language; 
+        }>(imports: T): { 
+            [k in keyof T]: Docuscript.ParserNodes<Language, FuncMap>[T[k] extends keyof Docuscript.ParserNodes<Language, FuncMap> ? T[k] : never] 
+        } => {
+            type IncludeMap = { 
+                [k in keyof T]: Docuscript.ParserNodes<Language, FuncMap>[T[k] extends keyof Docuscript.ParserNodes<Language, FuncMap> ? T[k] : never] 
+            };
+            const nodes: IncludeMap = {} as IncludeMap;
+            for (const key in imports) {
+                nodes[key] = context[imports[key] as keyof FuncMap];
+            }
+            return nodes;
+        };
+        page.generator(context, include);
 
         return content;
     };

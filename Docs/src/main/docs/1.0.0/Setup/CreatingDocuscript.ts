@@ -3,9 +3,10 @@ RHU.require(new Error(), {
 }, function({
     docs, rhuDocuscript,
 }) {
-    docs.jit = () => docuscript<RHUDocuscript.Language, RHUDocuscript.FuncMap>((lib, include) => {
-        const { p, br, link, h1, i } = lib;
-        const { cb } = include({ cb: "code:block" });
+    docs.jit = () => docuscript<RHUDocuscript.Language, RHUDocuscript.FuncMap>((nodes) => {
+        const {
+            p, link, br, i, h1, h2
+        } = nodes;
         p(
             "Docuscript is an experimental typescript program for writing quick and dirty documentation using code. The Github rep can be found ",
             link("https://github.com/randomuserhi/Docuscript", "here"), "."
@@ -16,6 +17,7 @@ RHU.require(new Error(), {
         );
 
         h1("test");
-        cb(["javascript"], `function test() { return "hello" };`);
+        h2("test");
+        h1("test");
     }, rhuDocuscript);
 });

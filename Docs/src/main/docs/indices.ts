@@ -42,14 +42,9 @@ declare namespace RHU {
             };
 
             set("About", "About.js");
-            /*dir(set("Deep", "Docs/Deep.js"), (set) => {
-                dir(set("Net", "Docs/Deep/Net.js"), (set) => {
-                    set("UDPServer", "Docs/Deep/Net/UDPServer.js");
-                    set("UDPClient", "Docs/Deep/Net/UDPClient.js");
-                    set("TCPServer", "Docs/Deep/Net/TCPServer.js");
-                    set("TCPClient", "Docs/Deep/Net/TCPClient.js");
-                });
-            });*/
+            dir(set("Setup", "Setup.js"), (set) => {
+                set("Creating a Docuscript Project", "Setup/CreatingDocuscript.js");
+            });
         })(docs.create("1.0.0", "About"));
 
         return {
