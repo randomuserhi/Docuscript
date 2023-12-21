@@ -47,6 +47,10 @@ declare namespace RHU {
             });
             dir(set("Creating a Language Specification", "CreatingLanguage.js"), (set) => {
                 set("Getting Started", "CreatingLanguage/GettingStarted.js");
+                set("Importing a Language Specification", "CreatingLanguage/ImportingLanguage.js");
+            });
+            dir("Language Specs", (set) => {
+                set("RHU", "LanguageSpec/RHU.js");
             });
         })(docs.create("1.0.0", "About"));
 
